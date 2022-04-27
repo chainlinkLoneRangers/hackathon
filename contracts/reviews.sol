@@ -7,9 +7,7 @@ import "github.com/smartcontractkit/chainlink/evm-contracts/src/v0.6/ChainlinkCl
 contract Reviews {
 
     review[] public reviews;
-    address public reviewee;   //could one review pertain to multiple businesses
-                               //Google reviews are one business to many reviews
-                               //ours could be a many to many relationship
+    
     //function addReview()
     //function updateReview() -- can only be allowed under certain circumstances
     //                        -- reviews should be "mostly immutable"
@@ -20,12 +18,7 @@ contract Reviews {
     //function arbitrateReview() -- allow parties to settle a negative review
     //function listAllReviews()
 
-    bool private needsArbitration;
-    bool private settled;
-    bool private reviewerArbitrated;
-    bool private revieweeArbitrated;
-    bool private reviewerSettled;
-    bool private revieweeSettled;
+    
 
     constructor() public {
         owner = msg.sender;
