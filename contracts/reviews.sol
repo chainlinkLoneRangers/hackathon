@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "classes/review.sol";
+import "../classes/review.sol"; 
 import "github.com/smartcontractkit/chainlink/evm-contracts/src/v0.6/ChainlinkClient.sol";
 
 contract Reviews {
@@ -59,34 +59,34 @@ contract Reviews {
             addReview();
     }
 
-    function arbitrateReview(address fromAddress) {
+    function arbitrateReview(address fromAddress, uint256 reviewId) {
         //needs approval from both accounts
         //when that is done, the review will not be published
         //TODO: complete code
         if (fromAddress == reviewee)
-            revieweeArbitrated = true;
+            reviews[reviewId].revieweeArbitrated = true;
 
         if (fromAddress == review.reviewer)
-            reviewerArbitrated = true;
+            reviews[reviewId].reviewerArbitrated = true;
         
-        if (reviewerArbitrated && revieweeArbitrated)
+        if (reviews[reviewId].reviewerArbitrated && reviews[reviewId].revieweeArbitrated)
             cancelKeeper();
 
         //we also need to record the agreement they have reached
         //the smart contract will serve as the binding contract for their settlement
     }
 
-    function markReviewSettled(address fromAddress) {
+    function markReviewSettled(address fromAddress, uint256 reviewId) {
         //needs approval from both accounts
         //when that is done, the arbitration will be marked as settled (complete)
         //TODO: complete code
         if (fromAddress == reviewee)
-            revieweeSettled = true;
+            reviews[reviewId].revieweeSettled = true;
 
         if (fromAddress == review.reviewer)
-            reviewerSettled = true;
+            reviews[reviewId].reviewerSettled = true;
         
-        settled = (reviewerSettled && revieweeSettled);
+        settled = (reviews[reviewId].reviewerSettled && reviews[reviewId].revieweeSettled);
     }
 
     function cancelKeeper() {
