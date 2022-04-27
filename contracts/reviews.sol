@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import "../classes/review.sol"; 
 import "github.com/smartcontractkit/chainlink/evm-contracts/src/v0.6/ChainlinkClient.sol";
@@ -7,6 +7,7 @@ import "github.com/smartcontractkit/chainlink/evm-contracts/src/v0.6/ChainlinkCl
 contract Reviews {
 
     review[] public reviews;
+    address public owner;
     
     //function addReview()
     //function updateReview() -- can only be allowed under certain circumstances
@@ -28,8 +29,6 @@ contract Reviews {
         //Kovan alarm oracle
         oracle = 0x2f90A6D021db21e1B2A077c5a37B3C7E75D15b7e; 
         jobId = "a7ab70d561d34eb49e9b1612fd2e044b";
-        settled = false;
-        needsArbitration = false;
     }
 
     //should be a way for an owner or reviewer to extend the timer
@@ -55,44 +54,44 @@ contract Reviews {
         //owner and reviewer settle and agree review can be published
         //owner and reviewer settle and agree review cannot be published
         //a good review passes through the system and is automatically published
-        if (needsArbitration == true && settled == false)
+        if (reviews[uint(_requestId)].needsArbitration == true && reviews[uint(_requestId)].settled == false)
             addReview();
     }
 
-    function arbitrateReview(address fromAddress, uint256 reviewId) {
+    function arbitrateReview(address fromAddress, uint256 reviewId) public {
         //needs approval from both accounts
         //when that is done, the review will not be published
         //TODO: complete code
-        if (fromAddress == reviewee)
+        if (fromAddress == reviews[reviewId].reviewee)
             reviews[reviewId].revieweeArbitrated = true;
 
-        if (fromAddress == review.reviewer)
+        if (fromAddress == reviews[reviewId].reviewer)
             reviews[reviewId].reviewerArbitrated = true;
         
         if (reviews[reviewId].reviewerArbitrated && reviews[reviewId].revieweeArbitrated)
-            cancelKeeper();
+            cancelKeeper(reviewId);
 
         //we also need to record the agreement they have reached
         //the smart contract will serve as the binding contract for their settlement
     }
 
-    function markReviewSettled(address fromAddress, uint256 reviewId) {
+    function markReviewSettled(address fromAddress, uint256 reviewId) public {
         //needs approval from both accounts
         //when that is done, the arbitration will be marked as settled (complete)
         //TODO: complete code
-        if (fromAddress == reviewee)
+        if (fromAddress == reviews[reviewId].reviewee)
             reviews[reviewId].revieweeSettled = true;
 
-        if (fromAddress == review.reviewer)
+        if (fromAddress == reviews[reviewId].reviewer)
             reviews[reviewId].reviewerSettled = true;
         
-        settled = (reviews[reviewId].reviewerSettled && reviews[reviewId].revieweeSettled);
+        reviews[reviewId].settled = (reviews[reviewId].reviewerSettled && reviews[reviewId].revieweeSettled);
     }
 
-    function cancelKeeper() {
+    function cancelKeeper(uint256 reviewId) private {
         //can we cancel the keeper once it is started?
         //if not, we can add a flag on the callback (publishReview)
         //like so:
-        settled == true;
+        reviews[reviewId].settled == true;
     }
 }
