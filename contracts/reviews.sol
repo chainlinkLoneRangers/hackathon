@@ -2,12 +2,16 @@
 pragma solidity ^0.8.4;
 
 import "../classes/review.sol"; 
-import "github.com/smartcontractkit/chainlink/evm-contracts/src/v0.6/ChainlinkClient.sol";
+import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 
-contract Reviews {
+contract Reviews is ChainlinkClient {
 
     review[] public reviews;
     address public owner;
+
+    uint private oraclePayment;
+    address private oracle;
+    bytes32 private jobId;
     
     //function addReview()
     //function updateReview() -- can only be allowed under certain circumstances
@@ -35,7 +39,7 @@ contract Reviews {
     //maybe the owner needs to research or the reviewer needs time to reconsider
     //how best to do that?
     function scheduleKeeper(uint sleepMinutes) private {
-        Chainlink.Request memory req = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
+        Chainlink.Request memory req = buildChainlinkRequest(jobId, address(this), this.publishReview.selector);
 
         //Linter: Avoid to make time-based decisions in your business logic [not-rely-on-time]
         //TODO: Fix Linter error
@@ -54,8 +58,8 @@ contract Reviews {
         //owner and reviewer settle and agree review can be published
         //owner and reviewer settle and agree review cannot be published
         //a good review passes through the system and is automatically published
-        if (reviews[uint(_requestId)].needsArbitration == true && reviews[uint(_requestId)].settled == false)
-            addReview();
+        //if (reviews[uint(_requestId)].needsArbitration == true && reviews[uint(_requestId)].settled == false)
+        //    addReview();
     }
 
     function arbitrateReview(address fromAddress, uint256 reviewId) public {
@@ -94,4 +98,6 @@ contract Reviews {
         //like so:
         reviews[reviewId].settled == true;
     }
+
+    function addReview() private {}
 }
