@@ -3,6 +3,9 @@ pragma solidity ^0.8.4;
 
 import "../classes/review.sol"; 
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+// KeeperCompatible.sol imports the functions from both ./KeeperBase.sol and
+// ./interfaces/KeeperCompatibleInterface.sol
+import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 contract Reviews is ChainlinkClient {
 
