@@ -4,6 +4,9 @@ pragma solidity ^0.8.4;
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// KeeperCompatible.sol imports the functions from both ./KeeperBase.sol and
+// ./interfaces/KeeperCompatibleInterface.sol
+import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 error TransferFailed();
 
