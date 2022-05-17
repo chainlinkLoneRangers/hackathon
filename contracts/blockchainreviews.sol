@@ -6,6 +6,20 @@ contract BlockchainReviews{
 
         event ReviewSubmitted(uint8 rating, string review);
         event ClientOnboarded(string clientName, string clientCategory);
+        event SetClientOnboardingFee(uint256 fee);
+
+        address payable private _owner;
+        uint256 private _clientOnboardingFee;
+
+        constructor() {
+        _owner = payable(msg.sender);
+        _clientOnboardingFee = 0.01 ether;
+        }
+        
+        modifier onlyOwner() {
+            require(msg.sender == _owner);
+            _;
+        }
 
         struct Review {
             uint8 rating;
@@ -20,8 +34,16 @@ contract BlockchainReviews{
         Review[] private userReviews;
         Client[] private clientData;
 
+        // State change fucntions
+
+        function setClientOnboardingFee(uint256 _fee) public onlyOwner {
+            _clientOnboardingFee = _fee;
+            emit SetClientOnboardingFee(_fee);
+
+        }
+
         function onboardClient(string memory _clientName, string memory _clientCategory) external payable {
-            require(msg.value >= 1000, "Please provide sufficient funds");
+            require(msg.value == 0.01 ether, "Please enter the required onboarding fee");
             clientData.push(Client(_clientName, _clientCategory));
             emit ClientOnboarded(_clientName, _clientCategory);
         }
@@ -32,12 +54,21 @@ contract BlockchainReviews{
             emit ReviewSubmitted(_rating, _review);
         }
 
-        function getReviews() public view returns (Review[] memory) {
+        // Getter functions
+
+        function getClientOnboardingFee() external view returns(uint256) {
+            return _clientOnboardingFee;
+        }
+
+        function getReviews() external view returns (Review[] memory) {
             return userReviews;
         }
 
-        function getContractBalance() public view returns(uint256) {
+        function getContractBalance() external view returns(uint256) {
             return address(this).balance;
         }
+        function viewClientList() external view returns(Client[] memory) {
+            return clientData;
+        } 
 
 }
