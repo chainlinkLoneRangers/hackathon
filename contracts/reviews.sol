@@ -1,54 +1,82 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+//SPDX-License-Identifier: Unlicense
 
-import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// KeeperCompatible.sol imports the functions from both ./KeeperBase.sol and
-// ./interfaces/KeeperCompatibleInterface.sol
-import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
+pragma solidity ^0.8.0;
 
-error TransferFailed();
+contract BlockchainReviews{
 
-contract Reviews is ReentrancyGuard {
+        event ReviewSubmitted(uint8 rating, string review);
+        event ClientOnboarded(string clientName, string clientCategory);
+        event SetClientOnboardingFee(uint256 fee);
 
-    IERC20 public s_rewardToken;
+        address payable private _owner;
+        uint256 private _clientOnboardingFee;
 
-    struct review {
-        address reviewer;
-        uint revieweeId;
-        string ipfsHash;
-        int8 reviewScore;
-    }
-
-    review[] public reviews;
-    address[] public reviewees;
-    uint256 rewardPerReview = 1;
-
-    function addReview(uint256 _revieweeId, string memory _ipfsHash, int8 _reviewScore) external {
-        reviews.push(review(msg.sender, _revieweeId, _ipfsHash, _reviewScore));
-    }
-
-    function addReviewee(address _reviewee) external {
-        reviewees.push(_reviewee);
-    }
-
-    function _rewardReviewer() private nonReentrant {
-        bool success = s_rewardToken.transfer(msg.sender, rewardPerReview);
-        if (!success) {
-            revert TransferFailed();
+        constructor() {
+            _owner = payable(msg.sender);
+            _clientOnboardingFee = 0.01 ether;
         }
-    }
-    
-    //function addReview()
-    //function updateReview() -- can only be allowed under certain circumstances
-    //                        -- reviews should be "mostly immutable"
-    //                        -- discuss with team about use cases
-    //event notifyReviewer(address reviewer, review newReview) -- alert of new reviews
-    //event notifyReviewee(address reviewee, review updatedReview) -- alert of response to review
-    //function scheduleKeeper() -- schedule self publish of negative review
-    //function arbitrateReview() -- allow parties to settle a negative review
-    //function listAllReviews()
+        
+        modifier onlyOwner() {
+            require(msg.sender == _owner);
+            _;
+        }
 
-    
+        struct Review {
+            uint8 rating;
+            string review;
+        }
+
+        struct Client {
+            string clientName;
+            string clientCategory;
+            uint256 rewardReserves;
+        }
+
+        Review[] private userReviews;
+        Client[] private clientData;
+
+        // State change fucntions
+
+        function setClientOnboardingFee(uint256 _fee) public onlyOwner {
+            _clientOnboardingFee = _fee;
+            emit SetClientOnboardingFee(_fee);
+
+        }
+
+        function onboardClient(string memory _clientName, string memory _clientCategory) external payable {
+            require(msg.value == 0.01 ether, "Please enter the required onboarding fee");
+            clientData.push(Client(_clientName, _clientCategory, msg.value));
+            emit ClientOnboarded(_clientName, _clientCategory);
+
+        }
+
+        function submitReviews(uint8 _rating, string memory _review) public {
+            
+            userReviews.push(Review(_rating, _review));
+            emit ReviewSubmitted(_rating, _review);
+            payable(msg.sender).transfer(0.0001 ether);
+        }
+
+        function fillUpRewardPot(uint256 clientId) external payable {
+            require(msg.value >= 0.01 ether, "Please enter minimum the required onboaording fee");
+            clientData[clientId].rewardReserves += msg.value;
+        }
+
+        // Getter functions
+
+        function getClientOnboardingFee() external view returns(uint256) {
+            return _clientOnboardingFee;
+        }
+
+        function getReviews() external view returns (Review[] memory) {
+            return userReviews;
+        }
+
+        function getContractBalance() external view returns(uint256) {
+            return address(this).balance;
+        }
+        function viewClientList() external view returns(Client[] memory) {
+            return clientData;
+        } 
+
 }
